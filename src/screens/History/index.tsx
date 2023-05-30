@@ -2,6 +2,11 @@ import { useEffect, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { View, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { HouseLine } from 'phosphor-react-native';
+import Animated, {
+  Layout,
+  SlideInRight,
+  SlideOutRight,
+} from 'react-native-reanimated';
 
 import { Header } from '../../components/Header';
 import { HistoryCard, HistoryProps } from '../../components/HistoryCard';
@@ -29,17 +34,13 @@ export function History() {
   }
 
   function handleRemove(id: string) {
-    Alert.alert(
-      'Remover',
-      'Deseja remover esse registro?',
-      [
-        {
-          text: 'Sim', onPress: () => remove(id)
-        },
-        { text: 'Não', style: 'cancel' }
-      ]
-    );
-
+    Alert.alert('Remover', 'Deseja remover esse registro?', [
+      {
+        text: 'Sim',
+        onPress: () => remove(id),
+      },
+      { text: 'Não', style: 'cancel' },
+    ]);
   }
 
   useEffect(() => {
@@ -47,13 +48,13 @@ export function History() {
   }, []);
 
   if (isLoading) {
-    return <Loading />
+    return <Loading />;
   }
 
   return (
     <View style={styles.container}>
       <Header
-        title="Histórico"
+        title='Histórico'
         subtitle={`Seu histórico de estudos${'\n'}realizados`}
         icon={HouseLine}
         onPress={goBack}
@@ -63,16 +64,18 @@ export function History() {
         contentContainerStyle={styles.history}
         showsVerticalScrollIndicator={false}
       >
-        {
-          history.map((item) => (
-            <TouchableOpacity
-              key={item.id}
-              onPress={() => handleRemove(item.id)}
-            >
+        {history.map((item) => (
+          <Animated.View
+            key={item.id}
+            entering={SlideInRight}
+            exiting={SlideOutRight}
+            layout={Layout.springify()}
+          >
+            <TouchableOpacity onPress={() => handleRemove(item.id)}>
               <HistoryCard data={item} />
             </TouchableOpacity>
-          ))
-        }
+          </Animated.View>
+        ))}
       </ScrollView>
     </View>
   );
