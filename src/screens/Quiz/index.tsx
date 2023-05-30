@@ -1,5 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Alert, ScrollView, View } from 'react-native';
+import Animated, {
+  Easing,
+  interpolate,
+  useAnimatedStyle,
+  useSharedValue,
+  withSequence,
+  withTiming,
+} from 'react-native-reanimated';
 
 import { useNavigation, useRoute } from '@react-navigation/native';
 
@@ -18,14 +26,18 @@ interface Params {
   id: string;
 }
 
-type QuizProps = typeof QUIZ[0];
+type QuizProps = (typeof QUIZ)[0];
 
 export function Quiz() {
   const [points, setPoints] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [quiz, setQuiz] = useState<QuizProps>({} as QuizProps);
-  const [alternativeSelected, setAlternativeSelected] = useState<null | number>(null);
+  const [alternativeSelected, setAlternativeSelected] = useState<null | number>(
+    null
+  );
+
+  const shake = useSharedValue(0);
 
   const { navigate } = useNavigation();
 
@@ -35,7 +47,7 @@ export function Quiz() {
   function handleSkipConfirm() {
     Alert.alert('Pular', 'Deseja realmente pular a questão?', [
       { text: 'Sim', onPress: () => handleNextQuestion() },
-      { text: 'Não', onPress: () => { } }
+      { text: 'Não', onPress: () => {} },
     ]);
   }
 
@@ -45,7 +57,7 @@ export function Quiz() {
       title: quiz.title,
       level: quiz.level,
       points,
-      questions: quiz.questions.length
+      questions: quiz.questions.length,
     });
 
     navigate('finish', {
@@ -56,7 +68,7 @@ export function Quiz() {
 
   function handleNextQuestion() {
     if (currentQuestion < quiz.questions.length - 1) {
-      setCurrentQuestion(prevState => prevState + 1)
+      setCurrentQuestion((prevState) => prevState + 1);
     } else {
       handleFinished();
     }
@@ -68,7 +80,9 @@ export function Quiz() {
     }
 
     if (quiz.questions[currentQuestion].correct === alternativeSelected) {
-      setPoints(prevState => prevState + 1);
+      setPoints((prevState) => prevState + 1);
+    } else {
+      shakeAnimation();
     }
 
     setAlternativeSelected(null);
@@ -83,15 +97,36 @@ export function Quiz() {
       {
         text: 'Sim',
         style: 'destructive',
-        onPress: () => navigate('home')
+        onPress: () => navigate('home'),
       },
     ]);
 
     return true;
   }
 
+  function shakeAnimation() {
+    shake.value = withSequence(
+      withTiming(3, { duration: 400, easing: Easing.bounce }),
+      withTiming(0)
+    );
+  }
+
+  const shakeStyleAnimated = useAnimatedStyle(() => {
+    return {
+      transform: [
+        {
+          translateX: interpolate(
+            shake.value,
+            [0, 0.5, 1, 1.5, 2, 2.5, 3],
+            [0, -15, 0, 15, 0, -15, 0]
+          ),
+        },
+      ],
+    };
+  });
+
   useEffect(() => {
-    const quizSelected = QUIZ.filter(item => item.id === id)[0];
+    const quizSelected = QUIZ.filter((item) => item.id === id)[0];
     setQuiz(quizSelected);
     setIsLoading(false);
   }, []);
@@ -103,7 +138,7 @@ export function Quiz() {
   }, [points]);
 
   if (isLoading) {
-    return <Loading />
+    return <Loading />;
   }
 
   return (
@@ -118,18 +153,20 @@ export function Quiz() {
           totalOfQuestions={quiz.questions.length}
         />
 
-        <Question
-          key={quiz.questions[currentQuestion].title}
-          question={quiz.questions[currentQuestion]}
-          alternativeSelected={alternativeSelected}
-          setAlternativeSelected={setAlternativeSelected}
-        />
+        <Animated.View style={shakeStyleAnimated}>
+          <Question
+            key={quiz.questions[currentQuestion].title}
+            question={quiz.questions[currentQuestion]}
+            alternativeSelected={alternativeSelected}
+            setAlternativeSelected={setAlternativeSelected}
+          />
+        </Animated.View>
 
         <View style={styles.footer}>
-          <OutlineButton title="Parar" onPress={handleStop} />
+          <OutlineButton title='Parar' onPress={handleStop} />
           <ConfirmButton onPress={handleConfirm} />
         </View>
       </ScrollView>
-    </View >
+    </View>
   );
 }
