@@ -21,37 +21,53 @@ export function Home() {
 
     if (levelAlreadySelected) {
       if (levels.length > 1) {
-        setLevels(prevState => prevState.filter(item => item !== level));
+        setLevels((prevState) => prevState.filter((item) => item !== level));
       }
     } else {
-      setLevels(prevState => [...prevState, level]);
+      setLevels((prevState) => [...prevState, level]);
     }
   }
 
   useEffect(() => {
-    setQuizzes(QUIZZES.filter(quiz => levels.includes(quiz.level)));
+    setQuizzes(QUIZZES.filter((quiz) => levels.includes(quiz.level)));
   }, [levels]);
 
   return (
     <View style={styles.container}>
       <Header
         icon={Trophy}
-        title="Vamos estudar"
-        subtitle="Treine seus conhecimento"
+        title='Vamos estudar'
+        subtitle='Treine seus conhecimento'
         onPress={() => navigate('history')}
       />
 
       <View style={styles.levels}>
-        <Level title="Fácil" type="EASY" onPress={() => handleLevelFilter(1)} isChecked={levels.includes(1)} />
-        <Level title="Médio" type="MEDIUM" onPress={() => handleLevelFilter(2)} isChecked={levels.includes(2)} />
-        <Level title="Difícil" type="HARD" onPress={() => handleLevelFilter(3)} isChecked={levels.includes(3)} />
+        <Level
+          title='Fácil'
+          type='EASY'
+          onPress={() => handleLevelFilter(1)}
+          isChecked={levels.includes(1)}
+        />
+        <Level
+          title='Médio'
+          type='MEDIUM'
+          onPress={() => handleLevelFilter(2)}
+          isChecked={levels.includes(2)}
+        />
+        <Level
+          title='Difícil'
+          type='HARD'
+          onPress={() => handleLevelFilter(3)}
+          isChecked={levels.includes(3)}
+        />
       </View>
 
       <FlatList
         data={quizzes}
-        keyExtractor={item => item.id}
-        renderItem={({ item }) => (
+        keyExtractor={(item) => item.id}
+        renderItem={({ item, index }) => (
           <QuizCard
+            index={index}
             data={item}
             onPress={() => navigate('quiz', { id: item.id })}
           />
